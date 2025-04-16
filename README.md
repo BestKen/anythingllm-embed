@@ -105,6 +105,61 @@ REQUIRED data attributes:
 
 - `data-support-email` — Shows a support email that the user can used to draft an email via the "three dot" menu in the top right. Option will not appear if it is not set.
 
+### Pub/Sub Events
+
+The AnythingLLM embed supports a series of events that you can subscribe to for advanced customization and integration. These events allow you to hook into key points in the chat experience.
+
+```javascript
+// Example: Listen for when the chat window fully loads
+window.addEventListener("anythingllm-chat-window-loaded", (event) => {
+  console.log("Chat window loaded with settings:", event.detail.settings);
+  console.log("Session ID:", event.detail.sessionId);
+  console.log("Initial chat history:", event.detail.chatHistory);
+});
+
+// Example: Intercept and modify chat responses before they're displayed
+window.addEventListener("anythingllm-chat-response-received", (event) => {
+  // Access the original data
+  const originalResponse = event.detail.originalChatResult;
+
+  // Modify the response if needed
+  if (originalResponse.textResponse) {
+    // Add a custom prefix to all assistant messages
+    event.detail.modifiedChatResult.textResponse =
+      "🤖 " + originalResponse.textResponse;
+  }
+});
+
+// Example: Know when a complete chat response has finished
+window.addEventListener("anythingllm-chat-response-completed", (event) => {
+  console.log("Chat response completed with type:", event.detail.type);
+  console.log("Full chat history:", event.detail.history);
+
+  // You can perform analytics, save data, or trigger UI updates
+});
+
+// Example: Intercept and modify user messages before sending to the API
+window.addEventListener("anythingllm-before-send-message", (event) => {
+  console.log("Original message:", event.detail.originalMessage);
+
+  // Modify the message before it's sent
+  event.detail.modifiedMessage = event.detail.originalMessage.trim();
+
+  // Optionally cancel sending this message
+  if (event.detail.modifiedMessage.includes("forbidden_term")) {
+    event.detail.cancel = true;
+    alert("Message contains prohibited content");
+  }
+});
+```
+
+Available Events:
+
+- `anythingllm-chat-window-loaded` - Fired when the chat window fully loads
+- `anythingllm-chat-response-received` - Fired when each chunk of streaming response is received
+- `anythingllm-chat-response-completed` - Fired when a chat response is fully completed
+- `anythingllm-before-send-message` - Fired before a user message is sent, allowing modification
+
 ### `<iframe>` tag HTML embed
 
 _work in progress_

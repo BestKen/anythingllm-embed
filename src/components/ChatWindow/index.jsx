@@ -5,12 +5,24 @@ import ChatContainer from "./ChatContainer";
 import Sponsor from "../Sponsor";
 import { ChatHistoryLoading } from "./ChatContainer/ChatHistory";
 import ResetChat from "../ResetChat";
+import { useEffect } from "react";
+import { EVENTS } from "@/utils/constants";
 
 export default function ChatWindow({ closeChat, settings, sessionId }) {
   const { chatHistory, setChatHistory, loading } = useChatHistory(
     settings,
     sessionId
   );
+
+  useEffect(() => {
+    if (!loading) {
+      // Publish chat window loaded event
+      const event = new CustomEvent(EVENTS.CHAT_WINDOW_LOADED, {
+        detail: { settings, sessionId, chatHistory },
+      });
+      window.dispatchEvent(event);
+    }
+  }, [loading]);
 
   if (loading) {
     return (

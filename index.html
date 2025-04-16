@@ -2,16 +2,172 @@
 
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    #event-log {
+      margin-top: 20px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      height: 300px;
+      overflow-y: auto;
+      background: #f9f9f9;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+
+    .log-entry {
+      margin-bottom: 5px;
+      border-bottom: 1px dashed #eee;
+      padding-bottom: 5px;
+    }
+
+    .timestamp {
+      color: #999;
+      font-size: 0.8em;
+    }
+
+    .event-name {
+      color: #0066cc;
+      font-weight: bold;
+    }
+
+    .event-data {
+      color: #333;
+    }
+
+    button {
+      margin: 5px;
+      padding: 8px 15px;
+      background: #0066cc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0055aa;
+    }
+  </style>
 </head>
 <html lang="en">
 
-  <body>
-    <h1>This is an example testing page for embedded AnythingLLM.</h1>
-    <!--
-      <script data-embed-id="example-uuid" data-base-api-url='http://localhost:3001/api/embed' data-open-on-load="on"
-      src="/dist/anythingllm-chat-widget.js"> USE THIS SRC FOR DEVELOPMENT SO CHANGES APPEAR!
-      </script>
-    -->
-  </body>
+<body>
+  <h1>This is an example testing page for embedded AnythingLLM.</h1>
+
+  <div>
+    <button id="clear-log">Clear Log</button>
+    <button id="modify-message">Toggle Message Modification</button>
+    <button id="modify-response">Toggle Response Modification</button>
+  </div>
+
+  <div id="event-log">
+    <div class="log-entry">Event log will display here...</div>
+  </div>
+
+  <script data-embed-id="ba1ace72-a85d-4de9-89d8-55f623ef572a" data-base-api-url='http://localhost:3001/api/embed'
+    data-open-on-load="on" src="/dist/anythingllm-chat-widget.js">
+    </script>
+
+  <script>
+    // Configuration toggles
+    let modifyUserMessages = false;
+    let modifyResponses = false;
+
+    // Get elements
+    const eventLog = document.getElementById('event-log');
+    const clearLogBtn = document.getElementById('clear-log');
+    const modifyMessageBtn = document.getElementById('modify-message');
+    const modifyResponseBtn = document.getElementById('modify-response');
+
+    // Add event listeners for buttons
+    clearLogBtn.addEventListener('click', () => {
+      eventLog.innerHTML = '';
+      logEvent('manual', 'Log cleared');
+    });
+
+    modifyMessageBtn.addEventListener('click', () => {
+      modifyUserMessages = !modifyUserMessages;
+      logEvent('manual', `Message modification ${modifyUserMessages ? 'enabled' : 'disabled'}`);
+    });
+
+    modifyResponseBtn.addEventListener('click', () => {
+      modifyResponses = !modifyResponses;
+      logEvent('manual', `Response modification ${modifyResponses ? 'enabled' : 'disabled'}`);
+    });
+
+    // Helper function to log events to the UI
+    function logEvent(eventName, data) {
+      const timestamp = new Date().toLocaleTimeString();
+      const logEntry = document.createElement('div');
+      logEntry.className = 'log-entry';
+
+      let dataText = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+
+      logEntry.innerHTML = `
+        <span class="timestamp">[${timestamp}]</span>
+        <span class="event-name">${eventName}:</span>
+        <div class="event-data">${dataText}</div>
+      `;
+
+      eventLog.prepend(logEntry);
+    }
+
+    // 1. Listen for chat window loaded event
+    window.addEventListener("anythingllm-chat-window-loaded", (event) => {
+      logEvent("Chat Window Loaded", {
+        sessionId: event.detail.sessionId,
+        historyCount: event.detail.chatHistory.length
+      });
+    });
+
+    // 2. Listen for received responses and optionally modify them
+    window.addEventListener("anythingllm-chat-response-received", (event) => {
+      const response = event.detail.originalChatResult;
+
+      // Log the event
+      logEvent("Chat Response Received", {
+        type: response.type,
+        responseLength: response.textResponse?.length || 0
+      });
+
+      // Optionally modify the response
+      if (modifyResponses && response.textResponse) {
+        event.detail.modifiedChatResult.textResponse =
+          "🤖 " + response.textResponse;
+      }
+    });
+
+    // 3. Listen for completed responses
+    window.addEventListener("anythingllm-chat-response-completed", (event) => {
+      logEvent("Chat Response Completed", {
+        type: event.detail.type,
+        historyLength: event.detail.history.length
+      });
+    });
+
+    // 4. Listen for and optionally modify user messages before sending
+    window.addEventListener("anythingllm-before-send-message", (event) => {
+      // Log the original message
+      logEvent("Before Send Message", {
+        message: event.detail.originalMessage,
+        isCommand: event.detail.isCommand || false
+      });
+
+      // Optionally modify message
+      if (modifyUserMessages) {
+        event.detail.modifiedMessage = "Modified: " + event.detail.originalMessage;
+      }
+
+      // Demonstration of cancelling a message
+      if (event.detail.originalMessage.toLowerCase().includes("cancel this")) {
+        event.detail.cancel = true;
+        logEvent("Message Cancelled", "Message containing 'cancel this' was blocked");
+      }
+    });
+
+    // Log initialization
+    logEvent("Script Initialized", "Waiting for chat window to load...");
+  </script>
+</body>
 
 </html>

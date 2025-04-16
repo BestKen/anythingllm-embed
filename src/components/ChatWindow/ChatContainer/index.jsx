@@ -3,6 +3,7 @@ import ChatHistory from "./ChatHistory";
 import PromptInput from "./PromptInput";
 import handleChat from "@/utils/chat";
 import ChatService from "@/models/chatService";
+import { EVENTS } from "@/utils/constants";
 export const SEND_TEXT_EVENT = "anythingllm-embed-send-prompt";
 
 export default function ChatContainer({
@@ -30,14 +31,37 @@ export default function ChatContainer({
 
     if (!message || message === "") return false;
 
+    // Dispatch event before sending message to allow modification
+    const beforeSendEvent = new CustomEvent(EVENTS.BEFORE_SEND_MESSAGE, {
+      detail: {
+        originalMessage: message,
+        modifiedMessage: message,
+        cancel: false,
+      },
+    });
+
+    window.dispatchEvent(beforeSendEvent);
+
+    // Check if sending was cancelled by an event handler
+    if (beforeSendEvent.detail.cancel) {
+      return false;
+    }
+
+    // Use potentially modified message
+    const finalMessage = beforeSendEvent.detail.modifiedMessage;
+
     const prevChatHistory = [
       ...chatHistory,
-      { content: message, role: "user", sentAt: Math.floor(Date.now() / 1000) },
+      {
+        content: finalMessage,
+        role: "user",
+        sentAt: Math.floor(Date.now() / 1000),
+      },
       {
         content: "",
         role: "assistant",
         pending: true,
-        userMessage: message,
+        userMessage: finalMessage,
         animate: true,
         sentAt: Math.floor(Date.now() / 1000),
       },
@@ -50,6 +74,26 @@ export default function ChatContainer({
   const sendCommand = (command, history = [], attachments = []) => {
     if (!command || command === "") return false;
 
+    // Dispatch event before sending command to allow modification
+    const beforeSendEvent = new CustomEvent(EVENTS.BEFORE_SEND_MESSAGE, {
+      detail: {
+        originalMessage: command,
+        modifiedMessage: command,
+        cancel: false,
+        isCommand: true,
+      },
+    });
+
+    window.dispatchEvent(beforeSendEvent);
+
+    // Check if sending was cancelled by an event handler
+    if (beforeSendEvent.detail.cancel) {
+      return false;
+    }
+
+    // Use potentially modified command
+    const finalCommand = beforeSendEvent.detail.modifiedMessage;
+
     let prevChatHistory;
     if (history.length > 0) {
       // use pre-determined history chain.
@@ -59,7 +103,7 @@ export default function ChatContainer({
           content: "",
           role: "assistant",
           pending: true,
-          userMessage: command,
+          userMessage: finalCommand,
           attachments,
           animate: true,
         },
@@ -68,7 +112,7 @@ export default function ChatContainer({
       prevChatHistory = [
         ...chatHistory,
         {
-          content: command,
+          content: finalCommand,
           role: "user",
           attachments,
         },
@@ -76,7 +120,7 @@ export default function ChatContainer({
           content: "",
           role: "assistant",
           pending: true,
-          userMessage: command,
+          userMessage: finalCommand,
           animate: true,
         },
       ];

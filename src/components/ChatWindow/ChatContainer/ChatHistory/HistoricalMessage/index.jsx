@@ -8,6 +8,10 @@ import AnythingLLMIcon from "@/assets/anything-llm-icon.svg";
 import { formatDate } from "@/utils/date";
 
 const DOMPurify = createDOMPurify(window);
+// Configure DOMPurify to allow target="_blank" and rel attributes on links
+DOMPurify.setConfig({
+  ADD_ATTR: ["target", "rel"],
+});
 
 const ThoughtBubble = ({ thought }) => {
   const [isExpanded, setIsExpanded] = useState(false);

@@ -23,7 +23,7 @@ const markdown = markdownIt({
           hljs.highlight(code, { language: lang, ignoreIllegals: true }).value +
           "</pre></div>"
         );
-      } catch (__) {}
+      } catch (__) { }
     }
 
     return (
@@ -43,6 +43,32 @@ const markdown = markdownIt({
 })
   // Enable <ol> and <ul> items to not assume an HTML structure so we can keep numbering from responses.
   .disable("list");
+
+// Configure renderer to add target="_blank" to all links
+const defaultRender = markdown.renderer.rules.link_open || function (tokens, idx, options, env, self) {
+  return self.renderToken(tokens, idx, options);
+};
+
+markdown.renderer.rules.link_open = function (tokens, idx, options, env, self) {
+  // Add target="_blank" attribute to all links
+  const aIndex = tokens[idx].attrIndex('target');
+  if (aIndex < 0) {
+    tokens[idx].attrPush(['target', '_blank']); // add new attribute
+  } else {
+    tokens[idx].attrs[aIndex][1] = '_blank'; // replace value of existing attribute
+  }
+
+  // Add rel="noopener noreferrer" for security
+  const relIndex = tokens[idx].attrIndex('rel');
+  if (relIndex < 0) {
+    tokens[idx].attrPush(['rel', 'noopener noreferrer']); // add new attribute
+  } else {
+    tokens[idx].attrs[relIndex][1] = 'noopener noreferrer'; // replace value of existing attribute
+  }
+
+  // pass token to default renderer
+  return defaultRender(tokens, idx, options, env, self);
+};
 
 export default function renderMarkdown(text = "") {
   return markdown.render(text);

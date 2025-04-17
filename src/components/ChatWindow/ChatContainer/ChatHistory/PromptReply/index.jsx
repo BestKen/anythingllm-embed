@@ -4,6 +4,13 @@ import renderMarkdown from "@/utils/chat/markdown";
 import { embedderSettings } from "@/main";
 import AnythingLLMIcon from "@/assets/anything-llm-icon.svg";
 import { formatDate } from "@/utils/date";
+import createDOMPurify from "dompurify";
+
+const DOMPurify = createDOMPurify(window);
+// Configure DOMPurify to allow target="_blank" and rel attributes on links
+DOMPurify.setConfig({
+  ADD_ATTR: ["target", "rel"],
+});
 
 const ThinkingIndicator = ({ hasThought }) => {
   if (hasThought) {
@@ -167,7 +174,9 @@ const PromptReply = forwardRef(
               <span
                 className="allm-font-sans allm-reply allm-whitespace-pre-line allm-font-normal allm-text-sm allm-md:text-sm allm-flex allm-flex-col allm-gap-y-1"
                 dangerouslySetInnerHTML={{
-                  __html: renderMarkdown(responseContent || ""),
+                  __html: DOMPurify.sanitize(
+                    renderMarkdown(responseContent || "")
+                  ),
                 }}
               />
             </div>

@@ -21,12 +21,16 @@ export default function ChatWindowHeader({
   const [showingOptions, setShowOptions] = useState(false);
   const menuRef = useRef();
   const buttonRef = useRef();
+  const headerRef = useRef();
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   const handleChatReset = async () => {
     await ChatService.resetEmbedChatSession(settings, sessionId);
     setChatHistory([]);
     setShowOptions(false);
   };
+
   useEffect(() => {
     function handleClickOutside(event) {
       if (
@@ -44,11 +48,103 @@ export default function ChatWindowHeader({
     };
   }, [menuRef]);
 
+  // Implement draggable functionality
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isDragging) return;
+
+      const chatContainer = document.getElementById("anything-llm-chat");
+      if (!chatContainer) return;
+
+      const newX = e.clientX - dragOffset.x;
+      const newY = e.clientY - dragOffset.y;
+
+      // Set the new position
+      chatContainer.style.right = "auto";
+      chatContainer.style.bottom = "auto";
+      chatContainer.style.left = `${newX}px`;
+      chatContainer.style.top = `${newY}px`;
+
+      // Add dragging class for visual feedback
+      chatContainer.classList.add("being-dragged");
+
+      // Remove the position classes
+      chatContainer.classList.remove(
+        "allm-bottom-0",
+        "allm-left-0",
+        "allm-ml-4",
+        "allm-bottom-0",
+        "allm-right-0",
+        "allm-mr-4",
+        "allm-top-0",
+        "allm-left-0",
+        "allm-ml-4",
+        "allm-mt-4",
+        "allm-top-0",
+        "allm-right-0",
+        "allm-mr-4",
+        "allm-mt-4"
+      );
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      document.body.style.cursor = "default";
+
+      // Remove dragging class
+      const chatContainer = document.getElementById("anything-llm-chat");
+      if (chatContainer) {
+        chatContainer.classList.remove("being-dragged");
+      }
+    };
+
+    if (isDragging) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDragging, dragOffset]);
+
+  const handleMouseDown = (e) => {
+    // Only initiate drag if the click is not on a button
+    if (
+      e.target.tagName.toLowerCase() === "button" ||
+      e.target.closest("button") ||
+      menuRef.current?.contains(e.target)
+    ) {
+      return;
+    }
+
+    const chatContainer = document.getElementById("anything-llm-chat");
+    if (!chatContainer) return;
+
+    // Calculate the offset of the mouse pointer relative to the container
+    const rect = chatContainer.getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+
+    setIsDragging(true);
+    document.body.style.cursor = "move";
+  };
+
   return (
     <div
-      style={{ borderBottom: "1px solid #E9E9E9" }}
-      className="allm-flex allm-items-center allm-relative allm-rounded-t-2xl"
+      ref={headerRef}
+      style={{
+        borderBottom: "1px solid #E9E9E9",
+        cursor: isDragging ? "move" : "grab",
+      }}
+      className={`allm-flex allm-items-center allm-relative allm-rounded-t-2xl ${
+        isDragging ? "allm-bg-gray-100" : ""
+      }`}
       id="anything-llm-header"
+      onMouseDown={handleMouseDown}
     >
       <div className="allm-flex allm-justify-center allm-items-center allm-w-full allm-h-[76px]">
         <img

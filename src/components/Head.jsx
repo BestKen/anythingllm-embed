@@ -118,6 +118,23 @@ const customCss = `
   span.allm-whitespace-pre-line>p {
     margin: 0px;
   }
+
+  /* Draggable header styles */
+  #anything-llm-header {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+  }
+  
+  #anything-llm-header:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+  }
+  
+  #anything-llm-chat.being-dragged {
+    transition: none !important;
+    opacity: 0.8 !important;
+  }
 `;
 
 export default function Head() {

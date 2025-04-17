@@ -12,6 +12,7 @@ export default function App() {
   const sessionId = useSessionId();
   const [chatOpacity, setChatOpacity] = useState(1);
   const chatWindowRef = useRef(null);
+  const [isDragged, setIsDragged] = useState(false);
 
   useEffect(() => {
     if (embedSettings.openOnLoad === "on") {
@@ -36,6 +37,33 @@ export default function App() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isChatOpen]);
+
+  // Check if window has been dragged
+  useEffect(() => {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (
+          mutation.type === "attributes" &&
+          (mutation.attributeName === "style" ||
+            mutation.attributeName === "class")
+        ) {
+          const chatWindow = document.getElementById("anything-llm-chat");
+          if (chatWindow && (chatWindow.style.left || chatWindow.style.top)) {
+            setIsDragged(true);
+          }
+        }
+      });
+    });
+
+    const chatWindow = document.getElementById("anything-llm-chat");
+    if (chatWindow) {
+      observer.observe(chatWindow, { attributes: true });
+    }
+
+    return () => {
+      observer.disconnect();
     };
   }, [isChatOpen]);
 
@@ -68,7 +96,7 @@ export default function App() {
             opacity: chatOpacity,
             transition: "opacity 0.2s ease-in-out",
           }}
-          className={`allm-h-full allm-w-full allm-bg-white allm-fixed allm-bottom-0 allm-right-0 allm-mb-4 allm-md:mr-4 allm-rounded-2xl allm-border allm-border-gray-300 allm-shadow-[0_4px_14px_rgba(0,0,0,0.25)] allm-flex allm-flex-col ${positionClasses[position]}`}
+          className={`allm-h-full allm-w-full allm-bg-white allm-fixed allm-bottom-0 allm-right-0 allm-mb-4 allm-md:mr-4 allm-rounded-2xl allm-border allm-border-gray-300 allm-shadow-[0_4px_14px_rgba(0,0,0,0.25)] allm-flex allm-flex-col ${!isDragged ? positionClasses[position] : ""}`}
           id="anything-llm-chat"
         >
           {isChatOpen && (

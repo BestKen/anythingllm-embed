@@ -1,5 +1,6 @@
 import { CircleNotch, PaperPlaneRight } from "@phosphor-icons/react";
 import React, { useState, useRef, useEffect } from "react";
+import { embedderSettings } from "@/main";
 
 export default function PromptInput({
   message,
@@ -45,6 +46,9 @@ export default function PromptInput({
       event.target.value.length !== 0 ? element.scrollHeight + "px" : "auto";
   };
 
+  // Get the custom placeholder from script attributes
+  const customPlaceholder = embedderSettings.settings.placeholder || "Send a message";
+
   return (
     <div className="allm-w-full allm-sticky allm-bottom-0 allm-z-10 allm-flex allm-justify-center allm-items-center allm-bg-white">
       <form
@@ -71,7 +75,7 @@ export default function PromptInput({
                 }}
                 value={message}
                 className="allm-font-sans allm-border-none allm-cursor-text allm-max-h-[100px] allm-text-[14px] allm-mx-2 allm-py-2 allm-w-full allm-text-black allm-bg-transparent placeholder:allm-text-slate-800/60 allm-resize-none active:allm-outline-none focus:allm-outline-none allm-flex-grow"
-                placeholder={"Send a message"}
+                placeholder={customPlaceholder}
                 id="message-input"
               />
               <button

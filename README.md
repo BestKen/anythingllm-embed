@@ -99,6 +99,8 @@ REQUIRED data attributes:
 
 - `data-reset-chat-text` - Customize the text displayed on the Reset Chat buttons (both in header menu and footer). Default is `Reset Chat`.
 
+- `data-placeholder` - Customize the placeholder text in the chat input field. Default is `Send a message`.
+
 **Behavior Overrides**
 
 - `data-open-on-load` — Once loaded, open the chat as default. It can still be closed by the user. To enable set this attribute to `on`. All other values will be ignored.

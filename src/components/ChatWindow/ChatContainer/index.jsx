@@ -4,6 +4,7 @@ import PromptInput from "./PromptInput";
 import handleChat from "@/utils/chat";
 import ChatService from "@/models/chatService";
 import { EVENTS } from "@/utils/constants";
+import { dispatchAttributeEvent } from "@/utils/events";
 export const SEND_TEXT_EVENT = "anythingllm-embed-send-prompt";
 
 export default function ChatContainer({
@@ -31,24 +32,29 @@ export default function ChatContainer({
 
     if (!message || message === "") return false;
 
-    // Dispatch event before sending message to allow modification
-    const beforeSendEvent = new CustomEvent(EVENTS.BEFORE_SEND_MESSAGE, {
-      detail: {
-        originalMessage: message,
-        modifiedMessage: message,
-        cancel: false,
-      },
-    });
+    // Create event detail object
+    const eventDetail = {
+      originalMessage: message,
+      modifiedMessage: message,
+      cancel: false,
+    };
 
+    // Try attribute-based event dispatch first
+    dispatchAttributeEvent(settings, "beforeSendMessage", eventDetail);
+
+    // Legacy event listener approach (for backward compatibility)
+    const beforeSendEvent = new CustomEvent(EVENTS.BEFORE_SEND_MESSAGE, {
+      detail: eventDetail,
+    });
     window.dispatchEvent(beforeSendEvent);
 
     // Check if sending was cancelled by an event handler
-    if (beforeSendEvent.detail.cancel) {
+    if (eventDetail.cancel) {
       return false;
     }
 
     // Use potentially modified message
-    const finalMessage = beforeSendEvent.detail.modifiedMessage;
+    const finalMessage = eventDetail.modifiedMessage;
 
     const prevChatHistory = [
       ...chatHistory,
@@ -74,25 +80,30 @@ export default function ChatContainer({
   const sendCommand = (command, history = [], attachments = []) => {
     if (!command || command === "") return false;
 
-    // Dispatch event before sending command to allow modification
-    const beforeSendEvent = new CustomEvent(EVENTS.BEFORE_SEND_MESSAGE, {
-      detail: {
-        originalMessage: command,
-        modifiedMessage: command,
-        cancel: false,
-        isCommand: true,
-      },
-    });
+    // Create event detail object
+    const eventDetail = {
+      originalMessage: command,
+      modifiedMessage: command,
+      cancel: false,
+      isCommand: true,
+    };
 
+    // Try attribute-based event dispatch first
+    dispatchAttributeEvent(settings, "beforeSendMessage", eventDetail);
+
+    // Legacy event listener approach (for backward compatibility)
+    const beforeSendEvent = new CustomEvent(EVENTS.BEFORE_SEND_MESSAGE, {
+      detail: eventDetail,
+    });
     window.dispatchEvent(beforeSendEvent);
 
     // Check if sending was cancelled by an event handler
-    if (beforeSendEvent.detail.cancel) {
+    if (eventDetail.cancel) {
       return false;
     }
 
     // Use potentially modified command
-    const finalCommand = beforeSendEvent.detail.modifiedMessage;
+    const finalCommand = eventDetail.modifiedMessage;
 
     let prevChatHistory;
     if (history.length > 0) {
@@ -152,7 +163,8 @@ export default function ChatContainer({
             setLoadingResponse,
             setChatHistory,
             remHistory,
-            _chatHistory
+            _chatHistory,
+            settings
           )
       );
       return;

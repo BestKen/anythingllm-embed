@@ -64,10 +64,7 @@
     <div class="log-entry">Event log will display here...</div>
   </div>
 
-  <script data-embed-id="ba1ace72-a85d-4de9-89d8-55f623ef572a" data-base-api-url='http://localhost:3001/api/embed'
-    data-open-on-load="on" src="/dist/anythingllm-chat-widget.js">
-    </script>
-
+  <!-- First, define the event handler functions -->
   <script>
     // Configuration toggles
     let modifyUserMessages = false;
@@ -112,16 +109,16 @@
       eventLog.prepend(logEntry);
     }
 
-    // 1. Listen for chat window loaded event
-    window.addEventListener("anythingllm-chat-window-loaded", (event) => {
+    // 1. Handler for chat window loaded event
+    function onChatWindowLoaded(event) {
       logEvent("Chat Window Loaded", {
         sessionId: event.detail.sessionId,
         historyCount: event.detail.chatHistory.length
       });
-    });
+    }
 
-    // 2. Listen for received responses and optionally modify them
-    window.addEventListener("anythingllm-chat-response-received", (event) => {
+    // 2. Handler for received responses and optionally modify them
+    function onChatResponseReceived(event) {
       const response = event.detail.originalChatResult;
 
       // Log the event
@@ -135,18 +132,18 @@
         event.detail.modifiedChatResult.textResponse =
           "🤖 " + response.textResponse;
       }
-    });
+    }
 
-    // 3. Listen for completed responses
-    window.addEventListener("anythingllm-chat-response-completed", (event) => {
+    // 3. Handler for completed responses
+    function onChatResponseCompleted(event) {
       logEvent("Chat Response Completed", {
         type: event.detail.type,
         historyLength: event.detail.history.length
       });
-    });
+    }
 
-    // 4. Listen for and optionally modify user messages before sending
-    window.addEventListener("anythingllm-before-send-message", (event) => {
+    // 4. Handler for modifying user messages before sending
+    function onBeforeSendMessage(event) {
       // Log the original message
       logEvent("Before Send Message", {
         message: event.detail.originalMessage,
@@ -163,11 +160,19 @@
         event.detail.cancel = true;
         logEvent("Message Cancelled", "Message containing 'cancel this' was blocked");
       }
-    });
+    }
 
     // Log initialization
     logEvent("Script Initialized", "Waiting for chat window to load...");
   </script>
+
+  <!-- Then, attach the handlers via script attributes -->
+  <script data-embed-id="ba1ace72-a85d-4de9-89d8-55f623ef572a" data-base-api-url='http://localhost:3001/api/embed'
+    data-open-on-load="on" data-chat-window-loaded-event="onChatWindowLoaded"
+    data-chat-response-received-event="onChatResponseReceived"
+    data-chat-response-completed-event="onChatResponseCompleted" data-before-send-message-event="onBeforeSendMessage"
+    src="/dist/anythingllm-chat-widget.js">
+    </script>
 </body>
 
 </html>

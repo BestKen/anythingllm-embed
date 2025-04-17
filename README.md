@@ -109,56 +109,72 @@ REQUIRED data attributes:
 
 The AnythingLLM embed supports a series of events that you can subscribe to for advanced customization and integration. These events allow you to hook into key points in the chat experience.
 
-```javascript
-// Example: Listen for when the chat window fully loads
-window.addEventListener("anythingllm-chat-window-loaded", (event) => {
-  console.log("Chat window loaded with settings:", event.detail.settings);
-  console.log("Session ID:", event.detail.sessionId);
-  console.log("Initial chat history:", event.detail.chatHistory);
-});
+You can handle these events by defining your event handler functions and attaching them via script attributes:
 
-// Example: Intercept and modify chat responses before they're displayed
-window.addEventListener("anythingllm-chat-response-received", (event) => {
-  // Access the original data
-  const originalResponse = event.detail.originalChatResult;
-
-  // Modify the response if needed
-  if (originalResponse.textResponse) {
-    // Add a custom prefix to all assistant messages
-    event.detail.modifiedChatResult.textResponse =
-      "🤖 " + originalResponse.textResponse;
+```html
+<!-- First, define your event handler functions -->
+<script>
+  // Handler for when the chat window fully loads
+  function onChatWindowLoaded(event) {
+    console.log("Chat window loaded with settings:", event.detail.settings);
+    console.log("Session ID:", event.detail.sessionId);
+    console.log("Initial chat history:", event.detail.chatHistory);
   }
-});
 
-// Example: Know when a complete chat response has finished
-window.addEventListener("anythingllm-chat-response-completed", (event) => {
-  console.log("Chat response completed with type:", event.detail.type);
-  console.log("Full chat history:", event.detail.history);
+  // Handler to intercept and modify chat responses before they're displayed
+  function onChatResponseReceived(event) {
+    // Access the original data
+    const originalResponse = event.detail.originalChatResult;
 
-  // You can perform analytics, save data, or trigger UI updates
-});
-
-// Example: Intercept and modify user messages before sending to the API
-window.addEventListener("anythingllm-before-send-message", (event) => {
-  console.log("Original message:", event.detail.originalMessage);
-
-  // Modify the message before it's sent
-  event.detail.modifiedMessage = event.detail.originalMessage.trim();
-
-  // Optionally cancel sending this message
-  if (event.detail.modifiedMessage.includes("forbidden_term")) {
-    event.detail.cancel = true;
-    alert("Message contains prohibited content");
+    // Modify the response if needed
+    if (originalResponse.textResponse) {
+      // Add a custom prefix to all assistant messages
+      event.detail.modifiedChatResult.textResponse =
+        "🤖 " + originalResponse.textResponse;
+    }
   }
-});
+
+  // Handler for when a complete chat response has finished
+  function onChatResponseCompleted(event) {
+    console.log("Chat response completed with type:", event.detail.type);
+    console.log("Full chat history:", event.detail.history);
+
+    // You can perform analytics, save data, or trigger UI updates
+  }
+
+  // Handler to intercept and modify user messages before sending to the API
+  function onBeforeSendMessage(event) {
+    console.log("Original message:", event.detail.originalMessage);
+
+    // Modify the message before it's sent
+    event.detail.modifiedMessage = event.detail.originalMessage.trim();
+
+    // Optionally cancel sending this message
+    if (event.detail.modifiedMessage.includes("forbidden_term")) {
+      event.detail.cancel = true;
+      alert("Message contains prohibited content");
+    }
+  }
+</script>
+
+<!-- Then, attach your handlers to the embed script using data-xxx-event attributes -->
+<script
+  data-embed-id="5fc05aaf-2f2c-4c84-87a3-367a4692c1ee"
+  data-base-api-url="http://localhost:3001/api/embed"
+  data-chat-window-loaded-event="onChatWindowLoaded"
+  data-chat-response-received-event="onChatResponseReceived"
+  data-chat-response-completed-event="onChatResponseCompleted"
+  data-before-send-message-event="onBeforeSendMessage"
+  src="http://localhost:3000/embed/anythingllm-chat-widget.min.js"
+></script>
 ```
 
 Available Events:
 
-- `anythingllm-chat-window-loaded` - Fired when the chat window fully loads
-- `anythingllm-chat-response-received` - Fired when each chunk of streaming response is received
-- `anythingllm-chat-response-completed` - Fired when a chat response is fully completed
-- `anythingllm-before-send-message` - Fired before a user message is sent, allowing modification
+- `data-chat-window-loaded-event` - Fired when the chat window fully loads
+- `data-chat-response-received-event` - Fired when each chunk of streaming response is received
+- `data-chat-response-completed-event` - Fired when a chat response is fully completed
+- `data-before-send-message-event` - Fired before a user message is sent, allowing modification
 
 ### `<iframe>` tag HTML embed
 

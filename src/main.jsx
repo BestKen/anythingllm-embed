@@ -13,10 +13,23 @@ root.render(
   </React.StrictMode>
 );
 
-const scriptSettings = Object.assign(
-  {},
-  document?.currentScript?.dataset || {}
-);
+// Extract script attributes from dataset (browser already handles data- attributes)
+const extractScriptAttributes = () => {
+  const script = document.currentScript;
+  if (!script) {
+    console.warn("[AnythingLLM Embed] No script element found");
+    return {};
+  }
+
+  // Get the standard dataset (camelCased, without data- prefix)
+  // Browser automatically transforms data-xxx-yyy to xxxYyy
+  const datasetAttrs = Object.assign({}, script.dataset || {});
+
+  return datasetAttrs;
+};
+
+const scriptSettings = extractScriptAttributes();
+
 export const embedderSettings = {
   settings: scriptSettings,
   stylesSrc: parseStylesSrc(document?.currentScript?.src),

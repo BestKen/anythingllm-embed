@@ -1,12 +1,14 @@
 // For handling of synchronous chats that are not utilizing streaming or chat requests.
 import { EVENTS } from "../constants";
+import { dispatchAttributeEvent } from "../events";
 
 export default function handleChat(
   chatResult,
   setLoadingResponse,
   setChatHistory,
   remHistory,
-  _chatHistory
+  _chatHistory,
+  settings
 ) {
   const {
     uuid,
@@ -18,17 +20,23 @@ export default function handleChat(
     errorMsg = null,
   } = chatResult;
 
-  // Allow modification of the chat result via event
+  // Create event detail object
+  const eventDetail = {
+    originalChatResult: chatResult,
+    modifiedChatResult: { ...chatResult }
+  };
+
+  // Try attribute-based event dispatch first
+  dispatchAttributeEvent(settings, "chatResponseReceived", eventDetail);
+
+  // Legacy event listener approach (for backward compatibility)
   const receivedEvent = new CustomEvent(EVENTS.CHAT_RESPONSE_RECEIVED, {
-    detail: {
-      originalChatResult: chatResult,
-      modifiedChatResult: { ...chatResult }
-    }
+    detail: eventDetail
   });
   window.dispatchEvent(receivedEvent);
 
   // Use modified response if provided
-  const modifiedResult = receivedEvent.detail.modifiedChatResult || chatResult;
+  const modifiedResult = eventDetail.modifiedChatResult || chatResult;
   const {
     uuid: modUuid = uuid,
     textResponse: modTextResponse = textResponse,
@@ -41,6 +49,9 @@ export default function handleChat(
   // Preserve the sentAt from the last message in the chat history
   const lastMessage = _chatHistory[_chatHistory.length - 1];
   const sentAt = lastMessage?.sentAt;
+
+  // Create completion event detail for various response types
+  let completionEventDetail;
 
   if (type === "abort") {
     setLoadingResponse(false);
@@ -72,13 +83,11 @@ export default function handleChat(
       sentAt,
     });
 
-    // Dispatch completion event for abort case
-    window.dispatchEvent(new CustomEvent(EVENTS.CHAT_RESPONSE_COMPLETED, {
-      detail: {
-        type: "abort",
-        history: _chatHistory
-      }
-    }));
+    // Prepare event detail for abort case
+    completionEventDetail = {
+      type: "abort",
+      history: _chatHistory
+    };
   } else if (type === "textResponse") {
     setLoadingResponse(false);
     setChatHistory([
@@ -109,13 +118,11 @@ export default function handleChat(
       sentAt,
     });
 
-    // Dispatch completion event for full response
-    window.dispatchEvent(new CustomEvent(EVENTS.CHAT_RESPONSE_COMPLETED, {
-      detail: {
-        type: "fullResponse",
-        history: _chatHistory
-      }
-    }));
+    // Prepare event detail for full response
+    completionEventDetail = {
+      type: "fullResponse",
+      history: _chatHistory
+    };
   } else if (type === "textResponseChunk") {
     const chatIdx = _chatHistory.findIndex((chat) => chat.uuid === modUuid);
     if (chatIdx !== -1) {
@@ -148,15 +155,24 @@ export default function handleChat(
     }
     setChatHistory([..._chatHistory]);
 
-    // Dispatch completion event for final chunk if closed
+    // Only dispatch completion event for final chunk if closed
     if (modClose) {
-      window.dispatchEvent(new CustomEvent(EVENTS.CHAT_RESPONSE_COMPLETED, {
-        detail: {
-          type: "streamingComplete",
-          history: _chatHistory
-        }
-      }));
+      completionEventDetail = {
+        type: "streamingComplete",
+        history: _chatHistory
+      };
     }
+  }
+
+  // Dispatch completion event if we have completed a response
+  if (completionEventDetail) {
+    // Try attribute-based event dispatch first
+    dispatchAttributeEvent(settings, "chatResponseCompleted", completionEventDetail);
+
+    // Legacy event listener approach (for backward compatibility)
+    window.dispatchEvent(new CustomEvent(EVENTS.CHAT_RESPONSE_COMPLETED, {
+      detail: completionEventDetail
+    }));
   }
 }
 

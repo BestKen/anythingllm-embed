@@ -7,6 +7,7 @@ import { ChatHistoryLoading } from "./ChatContainer/ChatHistory";
 import ResetChat from "../ResetChat";
 import { useEffect } from "react";
 import { EVENTS } from "@/utils/constants";
+import { dispatchAttributeEvent } from "@/utils/events";
 
 export default function ChatWindow({ closeChat, settings, sessionId }) {
   const { chatHistory, setChatHistory, loading } = useChatHistory(
@@ -16,9 +17,15 @@ export default function ChatWindow({ closeChat, settings, sessionId }) {
 
   useEffect(() => {
     if (!loading) {
-      // Publish chat window loaded event
+      // Dispatch both event types - attribute-based and traditional event listener
+      const eventDetail = { settings, sessionId, chatHistory };
+
+      // New attribute-based event dispatch
+      dispatchAttributeEvent(settings, "chatWindowLoaded", eventDetail);
+
+      // Legacy event listener approach (for backward compatibility)
       const event = new CustomEvent(EVENTS.CHAT_WINDOW_LOADED, {
-        detail: { settings, sessionId, chatHistory },
+        detail: eventDetail,
       });
       window.dispatchEvent(event);
     }

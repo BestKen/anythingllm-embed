@@ -33,6 +33,14 @@ const DEFAULT_SETTINGS = {
   supportEmail: null, // string of email for contact
   username: null, // The display or readable name set on a script
   defaultMessages: [], // list of strings for default messages.
+
+  // event handlers
+  eventHandlers: {
+    chatWindowLoaded: null,
+    chatResponseReceived: null,
+    chatResponseCompleted: null,
+    beforeSendMessage: null,
+  },
 };
 
 export default function useGetScriptAttributes() {
@@ -67,6 +75,7 @@ export default function useGetScriptAttributes() {
 const validations = {
   _fallbacks: {
     defaultMessages: [],
+    eventHandlers: DEFAULT_SETTINGS.eventHandlers,
   },
 
   defaultMessages: function (value = null) {
@@ -101,5 +110,15 @@ function parseAndValidateEmbedSettings(settings = {}) {
     validated[key] = validatedValue;
   }
 
+  // Extract event handler function names from script attributes using the new data-xxx-event format
+  // The browser automatically transforms data-chat-window-loaded-event to chatWindowLoadedEvent in dataset
+  const eventHandlers = {
+    chatWindowLoaded: settings["chatWindowLoadedEvent"] || null,
+    chatResponseReceived: settings["chatResponseReceivedEvent"] || null,
+    chatResponseCompleted: settings["chatResponseCompletedEvent"] || null,
+    beforeSendMessage: settings["beforeSendMessageEvent"] || null,
+  };
+
+  validated.eventHandlers = eventHandlers;
   return validated;
 }

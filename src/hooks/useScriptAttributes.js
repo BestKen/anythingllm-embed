@@ -43,6 +43,11 @@ const DEFAULT_SETTINGS = {
   },
 };
 
+export function useScriptAttributes() {
+  const settings = useGetScriptAttributes();
+  return { scriptAttributes: settings };
+}
+
 export default function useGetScriptAttributes() {
   const [settings, setSettings] = useState({
     loaded: false,

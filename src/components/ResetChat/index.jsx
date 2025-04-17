@@ -1,6 +1,10 @@
 import ChatService from "@/models/chatService";
+import { useScriptAttributes } from "@/hooks/useScriptAttributes";
 
 export default function ResetChat({ setChatHistory, settings, sessionId }) {
+  const { scriptAttributes } = useScriptAttributes();
+  const resetChatText = scriptAttributes.resetChatText || "Reset Chat";
+  
   const handleChatReset = async () => {
     await ChatService.resetEmbedChatSession(settings, sessionId);
     setChatHistory([]);
@@ -13,7 +17,7 @@ export default function ResetChat({ setChatHistory, settings, sessionId }) {
         className="hover:allm-cursor-pointer allm-border-none allm-text-sm allm-bg-transparent hover:allm-opacity-80 hover:allm-underline"
         onClick={() => handleChatReset()}
       >
-        Reset Chat
+        {resetChatText}
       </button>
     </div>
   );

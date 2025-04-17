@@ -97,6 +97,8 @@ REQUIRED data attributes:
 
 - `data-default-messages` - A string of comma-separated messages you want to display to the user when the chat widget has no history. Example: `"How are you?, What is so interesting about this project?, Tell me a joke."`
 
+- `data-reset-chat-text` - Customize the text displayed on the Reset Chat buttons (both in header menu and footer). Default is `Reset Chat`.
+
 **Behavior Overrides**
 
 - `data-open-on-load` — Once loaded, open the chat as default. It can still be closed by the user. To enable set this attribute to `on`. All other values will be ignored.

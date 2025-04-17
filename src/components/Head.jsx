@@ -135,6 +135,36 @@ const customCss = `
     transition: none !important;
     opacity: 0.8 !important;
   }
+  
+  /* Resizable chat window styles */
+  #anything-llm-chat.being-resized {
+    transition: none !important;
+  }
+  
+  /* Triangular resize handle styles */
+  .resize-handle-triangle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 0;
+    height: 0;
+    cursor: nwse-resize;
+    border-style: solid;
+    border-width: 0 0 16px 16px;
+    border-color: transparent transparent #aaaaaa transparent;
+    z-index: 20;
+  }
+  
+  .resize-handle-triangle:hover {
+    border-color: transparent transparent #666666 transparent;
+  }
+  
+  /* Add a slight shadow to indicate resizability */
+  #anything-llm-chat {
+    transition: width 0.1s ease, height 0.1s ease;
+    min-width: 300px;
+    min-height: 400px;
+  }
 `;
 
 export default function Head() {

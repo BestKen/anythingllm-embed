@@ -5,7 +5,7 @@ import ChatContainer from "./ChatContainer";
 import Sponsor from "../Sponsor";
 import { ChatHistoryLoading } from "./ChatContainer/ChatHistory";
 import ResetChat from "../ResetChat";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { EVENTS } from "@/utils/constants";
 import { dispatchAttributeEvent } from "@/utils/events";
 
@@ -14,6 +14,9 @@ export default function ChatWindow({ closeChat, settings, sessionId }) {
     settings,
     sessionId
   );
+  const [isResizing, setIsResizing] = useState(false);
+  const [initialSize, setInitialSize] = useState({ width: 0, height: 0 });
+  const [resizeOffset, setResizeOffset] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     if (!loading) {
@@ -30,6 +33,77 @@ export default function ChatWindow({ closeChat, settings, sessionId }) {
       window.dispatchEvent(event);
     }
   }, [loading]);
+
+  // Implement resizable functionality
+  useEffect(() => {
+    const handleResizeMouseMove = (e) => {
+      if (!isResizing) return;
+
+      const chatContainer = document.getElementById("anything-llm-chat");
+      if (!chatContainer) return;
+
+      // Calculate new width and height based on mouse movement
+      const newWidth = Math.max(
+        300,
+        initialSize.width + (e.clientX - resizeOffset.x)
+      );
+      const newHeight = Math.max(
+        400,
+        initialSize.height + (e.clientY - resizeOffset.y)
+      );
+
+      // Set the new size
+      chatContainer.style.width = `${newWidth}px`;
+      chatContainer.style.height = `${newHeight}px`;
+      chatContainer.style.maxWidth = `${newWidth}px`;
+      chatContainer.style.maxHeight = `${newHeight}px`;
+
+      // Add resizing class for visual feedback
+      chatContainer.classList.add("being-resized");
+    };
+
+    const handleResizeMouseUp = () => {
+      setIsResizing(false);
+      document.body.style.cursor = "default";
+
+      // Remove resizing class
+      const chatContainer = document.getElementById("anything-llm-chat");
+      if (chatContainer) {
+        chatContainer.classList.remove("being-resized");
+      }
+    };
+
+    if (isResizing) {
+      document.addEventListener("mousemove", handleResizeMouseMove);
+      document.addEventListener("mouseup", handleResizeMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener("mousemove", handleResizeMouseMove);
+      document.removeEventListener("mouseup", handleResizeMouseUp);
+    };
+  }, [isResizing, initialSize, resizeOffset]);
+
+  const handleResizeMouseDown = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const chatContainer = document.getElementById("anything-llm-chat");
+    if (!chatContainer) return;
+
+    const rect = chatContainer.getBoundingClientRect();
+    setInitialSize({
+      width: rect.width,
+      height: rect.height,
+    });
+    setResizeOffset({
+      x: e.clientX,
+      y: e.clientY,
+    });
+
+    setIsResizing(true);
+    document.body.style.cursor = "nwse-resize";
+  };
 
   if (loading) {
     return (
@@ -68,13 +142,20 @@ export default function ChatWindow({ closeChat, settings, sessionId }) {
           knownHistory={chatHistory}
         />
       </div>
-      <div className="allm-mt-4 allm-pb-4 allm-h-fit allm-gap-y-2 allm-z-10">
+      <div className="allm-mt-4 allm-pb-4 allm-h-fit allm-gap-y-2 allm-z-10 allm-relative">
         <Sponsor settings={settings} />
         <ResetChat
           setChatHistory={setChatHistory}
           settings={settings}
           sessionId={sessionId}
         />
+
+        {/* Triangular resize handle in the bottom-right corner */}
+        <div
+          className="resize-handle-triangle"
+          onMouseDown={handleResizeMouseDown}
+          aria-label="Resize chat window"
+        ></div>
       </div>
     </div>
   );

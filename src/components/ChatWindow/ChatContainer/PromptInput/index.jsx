@@ -47,7 +47,8 @@ export default function PromptInput({
   };
 
   // Get the custom placeholder from script attributes
-  const customPlaceholder = embedderSettings.settings.placeholder || "Send a message";
+  const customPlaceholder =
+    embedderSettings.settings.placeholder || "Send a message";
 
   return (
     <div className="allm-w-full allm-sticky allm-bottom-0 allm-z-10 allm-flex allm-justify-center allm-items-center allm-bg-white">

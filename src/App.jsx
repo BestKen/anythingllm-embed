@@ -4,18 +4,40 @@ import useOpenChat from "@/hooks/useOpen";
 import Head from "@/components/Head";
 import OpenButton from "@/components/OpenButton";
 import ChatWindow from "./components/ChatWindow";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function App() {
   const { isChatOpen, toggleOpenChat } = useOpenChat();
   const embedSettings = useGetScriptAttributes();
   const sessionId = useSessionId();
+  const [chatOpacity, setChatOpacity] = useState(1);
+  const chatWindowRef = useRef(null);
 
   useEffect(() => {
     if (embedSettings.openOnLoad === "on") {
       toggleOpenChat(true);
     }
   }, [embedSettings.loaded]);
+
+  // Handle click outside chat window
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        isChatOpen &&
+        chatWindowRef.current &&
+        !chatWindowRef.current.contains(event.target)
+      ) {
+        setChatOpacity(0.5);
+      } else if (isChatOpen) {
+        setChatOpacity(1);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isChatOpen]);
 
   if (!embedSettings.loaded) return null;
 
@@ -38,10 +60,13 @@ export default function App() {
         className={`allm-fixed allm-z-50 ${isChatOpen ? "allm-block" : "allm-hidden"}`}
       >
         <div
+          ref={chatWindowRef}
           style={{
             maxWidth: windowWidth,
             maxHeight: windowHeight,
             height: "100%",
+            opacity: chatOpacity,
+            transition: "opacity 0.2s ease-in-out",
           }}
           className={`allm-h-full allm-w-full allm-bg-white allm-fixed allm-bottom-0 allm-right-0 allm-mb-4 allm-md:mr-4 allm-rounded-2xl allm-border allm-border-gray-300 allm-shadow-[0_4px_14px_rgba(0,0,0,0.25)] allm-flex allm-flex-col ${positionClasses[position]}`}
           id="anything-llm-chat"

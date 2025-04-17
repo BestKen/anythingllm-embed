@@ -4,7 +4,7 @@ import { useScriptAttributes } from "@/hooks/useScriptAttributes";
 export default function ResetChat({ setChatHistory, settings, sessionId }) {
   const { scriptAttributes } = useScriptAttributes();
   const resetChatText = scriptAttributes.resetChatText || "Reset Chat";
-  
+
   const handleChatReset = async () => {
     await ChatService.resetEmbedChatSession(settings, sessionId);
     setChatHistory([]);

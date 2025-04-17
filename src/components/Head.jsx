@@ -136,7 +136,23 @@ const customCss = `
     opacity: 0.8 !important;
   }
   
-  /* Resizable chat window styles */
+  /* Boundary effect styles */
+  #anything-llm-chat.near-boundary {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5), 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+  }
+  
+  /* Docking animation */
+  @keyframes dock-pulse {
+    0% { box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5), 0 4px 14px rgba(0, 0, 0, 0.25); }
+    50% { box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3), 0 4px 14px rgba(0, 0, 0, 0.25); }
+    100% { box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5), 0 4px 14px rgba(0, 0, 0, 0.25); }
+  }
+  
+  #anything-llm-chat.near-boundary {
+    animation: dock-pulse 1s ease-in-out infinite;
+  }
+
+    /* Resizable chat window styles */
   #anything-llm-chat.being-resized {
     transition: none !important;
   }

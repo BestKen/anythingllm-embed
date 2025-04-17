@@ -24,6 +24,12 @@ export default function ChatWindowHeader({
   const headerRef = useRef();
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [isNearBoundary, setIsNearBoundary] = useState(false);
+
+  // Padding from viewport edges (in pixels)
+  const BOUNDARY_PADDING = 16;
+  // Threshold to trigger boundary effect (in pixels)
+  const BOUNDARY_THRESHOLD = 40;
 
   const handleChatReset = async () => {
     await ChatService.resetEmbedChatSession(settings, sessionId);
@@ -56,8 +62,57 @@ export default function ChatWindowHeader({
       const chatContainer = document.getElementById("anything-llm-chat");
       if (!chatContainer) return;
 
-      const newX = e.clientX - dragOffset.x;
-      const newY = e.clientY - dragOffset.y;
+      // Get viewport dimensions
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      // Get chat container dimensions
+      const rect = chatContainer.getBoundingClientRect();
+      const containerWidth = rect.width;
+      const containerHeight = rect.height;
+
+      // Calculate new position
+      let newX = e.clientX - dragOffset.x;
+      let newY = e.clientY - dragOffset.y;
+
+      // Check if near boundary for visual effect
+      const isNearLeft = newX < BOUNDARY_THRESHOLD;
+      const isNearRight =
+        newX + containerWidth > viewportWidth - BOUNDARY_THRESHOLD;
+      const isNearTop = newY < BOUNDARY_THRESHOLD;
+      const isNearBottom =
+        newY + containerHeight > viewportHeight - BOUNDARY_THRESHOLD;
+
+      setIsNearBoundary(isNearLeft || isNearRight || isNearTop || isNearBottom);
+
+      // Apply magnetic effect when near boundaries
+      if (isNearLeft) {
+        newX = Math.max(newX, BOUNDARY_PADDING);
+      } else if (isNearRight) {
+        newX = Math.min(
+          newX,
+          viewportWidth - containerWidth - BOUNDARY_PADDING
+        );
+      }
+
+      if (isNearTop) {
+        newY = Math.max(newY, BOUNDARY_PADDING);
+      } else if (isNearBottom) {
+        newY = Math.min(
+          newY,
+          viewportHeight - containerHeight - BOUNDARY_PADDING
+        );
+      }
+
+      // Constrain to viewport boundaries with padding
+      newX = Math.max(
+        BOUNDARY_PADDING,
+        Math.min(newX, viewportWidth - containerWidth - BOUNDARY_PADDING)
+      );
+      newY = Math.max(
+        BOUNDARY_PADDING,
+        Math.min(newY, viewportHeight - containerHeight - BOUNDARY_PADDING)
+      );
 
       // Set the new position
       chatContainer.style.right = "auto";
@@ -67,6 +122,13 @@ export default function ChatWindowHeader({
 
       // Add dragging class for visual feedback
       chatContainer.classList.add("being-dragged");
+
+      // Add or remove boundary class based on proximity to edges
+      if (isNearBoundary) {
+        chatContainer.classList.add("near-boundary");
+      } else {
+        chatContainer.classList.remove("near-boundary");
+      }
 
       // Remove the position classes
       chatContainer.classList.remove(
@@ -89,12 +151,48 @@ export default function ChatWindowHeader({
 
     const handleMouseUp = () => {
       setIsDragging(false);
+      setIsNearBoundary(false);
       document.body.style.cursor = "default";
 
-      // Remove dragging class
+      // Check if the window is near a viewport edge and snap to it if needed
       const chatContainer = document.getElementById("anything-llm-chat");
       if (chatContainer) {
+        const snapThreshold = BOUNDARY_THRESHOLD; // pixels
+        const rect = chatContainer.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+
+        // Apply nice transition for docking
+        chatContainer.style.transition =
+          "left 0.2s ease-out, top 0.2s ease-out";
+
+        // Snap to left edge with padding
+        if (rect.left < snapThreshold) {
+          chatContainer.style.left = `${BOUNDARY_PADDING}px`;
+        }
+
+        // Snap to right edge with padding
+        if (viewportWidth - rect.right < snapThreshold) {
+          chatContainer.style.left = `${viewportWidth - rect.width - BOUNDARY_PADDING}px`;
+        }
+
+        // Snap to top edge with padding
+        if (rect.top < snapThreshold) {
+          chatContainer.style.top = `${BOUNDARY_PADDING}px`;
+        }
+
+        // Snap to bottom edge with padding
+        if (viewportHeight - rect.bottom < snapThreshold) {
+          chatContainer.style.top = `${viewportHeight - rect.height - BOUNDARY_PADDING}px`;
+        }
+
         chatContainer.classList.remove("being-dragged");
+        chatContainer.classList.remove("near-boundary");
+
+        // Remove the transition after it completes
+        setTimeout(() => {
+          chatContainer.style.transition = "";
+        }, 250);
       }
     };
 
@@ -107,7 +205,45 @@ export default function ChatWindowHeader({
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [isDragging, dragOffset]);
+  }, [isDragging, dragOffset, isNearBoundary]);
+
+  // Handle window resize to ensure chat window remains within viewport
+  useEffect(() => {
+    const handleResize = () => {
+      const chatContainer = document.getElementById("anything-llm-chat");
+      if (!chatContainer) return;
+
+      // Only apply constraints if the window has been moved from default position
+      if (chatContainer.style.left || chatContainer.style.top) {
+        const rect = chatContainer.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+
+        // Ensure window stays fully in viewport after resize with padding
+        if (rect.right > viewportWidth - BOUNDARY_PADDING) {
+          chatContainer.style.left = `${Math.max(BOUNDARY_PADDING, viewportWidth - rect.width - BOUNDARY_PADDING)}px`;
+        }
+
+        if (rect.bottom > viewportHeight - BOUNDARY_PADDING) {
+          chatContainer.style.top = `${Math.max(BOUNDARY_PADDING, viewportHeight - rect.height - BOUNDARY_PADDING)}px`;
+        }
+
+        // Also check the top and left edges
+        if (rect.left < BOUNDARY_PADDING) {
+          chatContainer.style.left = `${BOUNDARY_PADDING}px`;
+        }
+
+        if (rect.top < BOUNDARY_PADDING) {
+          chatContainer.style.top = `${BOUNDARY_PADDING}px`;
+        }
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   const handleMouseDown = (e) => {
     // Only initiate drag if the click is not on a button
@@ -121,6 +257,9 @@ export default function ChatWindowHeader({
 
     const chatContainer = document.getElementById("anything-llm-chat");
     if (!chatContainer) return;
+
+    // Remove any existing transitions
+    chatContainer.style.transition = "";
 
     // Calculate the offset of the mouse pointer relative to the container
     const rect = chatContainer.getBoundingClientRect();
@@ -142,7 +281,7 @@ export default function ChatWindowHeader({
       }}
       className={`allm-flex allm-items-center allm-relative allm-rounded-t-2xl ${
         isDragging ? "allm-bg-gray-100" : ""
-      }`}
+      } ${isNearBoundary ? "allm-bg-blue-50" : ""}`}
       id="anything-llm-header"
       onMouseDown={handleMouseDown}
     >

@@ -45,7 +45,7 @@ REQUIRED data attributes:
   data-base-api-url // The URL of your anythingLLM instance backend
 -->
 <script
-  data-embed-id="5fc05aaf-2f2c-4c84-87a3-367a4692c1ee"
+  data-embed-id="replace-to-your-embed-id"
   data-base-api-url="http://localhost:3001/api/embed"
   src="http://localhost:3000/embed/anythingllm-chat-widget.min.js"
 ></script>
@@ -163,7 +163,7 @@ You can handle these events by defining your event handler functions and attachi
 
 <!-- Then, attach your handlers to the embed script using data-xxx-event attributes -->
 <script
-  data-embed-id="5fc05aaf-2f2c-4c84-87a3-367a4692c1ee"
+  data-embed-id="replace-to-your-embed-id"
   data-base-api-url="http://localhost:3001/api/embed"
   data-chat-window-loaded-event="onChatWindowLoaded"
   data-chat-response-received-event="onChatResponseReceived"

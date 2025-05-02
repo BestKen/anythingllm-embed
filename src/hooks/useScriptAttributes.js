@@ -13,6 +13,9 @@ const DEFAULT_SETTINGS = {
 
   // style parameters
   chatIcon: "plus",
+  customButtonImageUrl: null, // custom image URL for the open button
+  customButtonImageWidth: null, // width of custom button image
+  customButtonImageHeight: null, // height of custom button image
   brandImageUrl: null, // will be forced into 100x50px container
   greeting: null, // empty chat window greeting.
   buttonColor: "#262626", // must be hex color code

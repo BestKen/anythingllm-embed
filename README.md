@@ -65,7 +65,21 @@ REQUIRED data attributes:
 
 - `data-chat-icon` — The chat bubble icon show when chat is closed. Options are `plus`, `chatBubble`, `support`, `search2`, `search`, `magic`.
 
+- `data-custom-button-image-url` — URL to a custom image or SVG to display in the chat button when closed. This overrides the `data-chat-icon` setting.
+
+- `data-custom-button-image-width` — Width of the custom button image (include CSS units like 'px', '%', 'rem'). Default is '24px'.
+
+- `data-custom-button-image-height` — Height of the custom button image (include CSS units like 'px', '%', 'rem'). Default is '24px'.
+
 - `data-button-color` — The chat bubble background color shown when chat is closed. Value must be hex color code.
+
+- `data-button-container-styles` — JSON string of CSS styles to apply to the button container when chat is closed. Example: `'{"padding":"10px","borderRadius":"50%","boxShadow":"0 4px 8px rgba(0,0,0,0.2)"}'`
+
+- `data-button-tooltip-text` — Custom text to display in the tooltip that appears above the chat button. Default is empty (no text).
+
+- `data-show-button-tooltip` — Controls whether to show the tooltip when hovering over the chat button. Set to "off" to disable the tooltip completely. Default is enabled.
+
+- `data-button-tooltip-always-on` — Set to "on" to make the tooltip always visible, regardless of hover state. Default is "off" (tooltip only shows on hover).
 
 - `data-user-bg-color` — The background color of the user chat bubbles when chatting. Value must be hex color code.
 

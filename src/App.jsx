@@ -80,6 +80,11 @@ export default function App() {
   const windowWidth = embedSettings.windowWidth ?? "400px";
   const windowHeight = embedSettings.windowHeight ?? "700px";
 
+  // Parse custom button container styles if provided
+  const buttonContainerStyles = embedSettings.buttonContainerStyles
+    ? JSON.parse(embedSettings.buttonContainerStyles)
+    : {};
+
   return (
     <>
       <Head />
@@ -112,6 +117,7 @@ export default function App() {
         <div
           id="anything-llm-embed-chat-button-container"
           className={`allm-fixed allm-bottom-0 ${positionClasses[position]} allm-mb-4 allm-z-50`}
+          style={buttonContainerStyles}
         >
           <OpenButton
             settings={embedSettings}

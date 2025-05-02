@@ -168,11 +168,14 @@
 
   <!-- Then, attach the handlers via script attributes -->
   <script data-embed-id="5fc05aaf-2f2c-4c84-87a3-367a4692c1ee" data-base-api-url='http://localhost:3001/api/embed'
-    data-open-on-load="on" data-chat-window-loaded-event="onChatWindowLoaded"
+    data-open-on-load="off" data-chat-window-loaded-event="onChatWindowLoaded"
     data-chat-response-received-event="onChatResponseReceived"
     data-chat-response-completed-event="onChatResponseCompleted" data-before-send-message-event="onBeforeSendMessage"
-    data-window-width="600px" data-window-height="800px" data-reset-chat-text="Reset Chat"
-    data-placeholder="Send a message" src="/dist/anythingllm-chat-widget.js">
+    data-window-width="600px" data-window-height="600px" data-reset-chat-text="Reset Chat"
+    data-placeholder="Send a message" src="/dist/anythingllm-chat-widget.js"
+    data-custom-button-image-url="https://www.svgrepo.com/show/4733/samples.svg" data-custom-button-image-width="300px"
+    data-custom-button-image-height="300px" data-button-tooltip-text="Open Chat" data-button-tooltip-always-on="on"
+    data-button-container-styles='{"margin-right": "4em", "margin-bottom": "4em", "opacity": "0.9"}'>
     </script>
 </body>
 

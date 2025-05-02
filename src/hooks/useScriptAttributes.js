@@ -36,6 +36,7 @@ const DEFAULT_SETTINGS = {
   supportEmail: null, // string of email for contact
   username: null, // The display or readable name set on a script
   defaultMessages: [], // list of strings for default messages.
+  defaultMessagesLayout: null, // layout of default messages
 
   // event handlers
   eventHandlers: {
@@ -83,6 +84,7 @@ export default function useGetScriptAttributes() {
 const validations = {
   _fallbacks: {
     defaultMessages: [],
+    defaultMessagesLayout: 'vertical',
     eventHandlers: DEFAULT_SETTINGS.eventHandlers,
   },
 
@@ -103,6 +105,12 @@ const validations = {
       console.error("AnythingLLMEmbed", e);
       return this._fallbacks.defaultMessages;
     }
+  },
+
+  defaultMessagesLayout: function (value = null) {
+    if (typeof value !== "string") return this._fallbacks.defaultMessagesLayout;
+    const layout = value.toLowerCase();
+    return layout === 'horizontal' ? 'horizontal' : 'vertical';
   },
 };
 

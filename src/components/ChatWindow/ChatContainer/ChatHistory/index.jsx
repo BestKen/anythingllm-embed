@@ -51,7 +51,22 @@ export default function ChatHistory({ settings = {}, history = [] }) {
       <div className="allm-h-full allm-overflow-y-auto allm-px-2 allm-py-4 allm-flex allm-flex-col allm-justify-start allm-no-scroll">
         <div className="allm-flex allm-h-full allm-flex-col allm-items-center allm-justify-center">
           <p className="allm-text-slate-400 allm-text-sm allm-font-sans allm-py-4 allm-text-center">
-            {settings?.greeting ?? "Send a chat to get started."}
+            {settings?.greetingImageUrl && (
+              <div className="allm-mb-4">
+                <img
+                  src={settings.greetingImageUrl}
+                  alt="Greeting"
+                  style={{
+                    width: settings.greetingImageWidth || "auto",
+                    height: settings.greetingImageHeight || "auto",
+                    maxWidth: "100%",
+                    borderRadius: "8px",
+                  }}
+                  className="allm-object-contain"
+                />
+              </div>
+            )}
+            <div>{settings?.greeting ?? "Send a chat to get started."}</div>
           </p>
           <SuggestedMessages settings={settings} />
         </div>
@@ -139,8 +154,13 @@ export function ChatHistoryLoading() {
 function SuggestedMessages({ settings }) {
   if (!settings?.defaultMessages?.length) return null;
 
+  // Check if horizontal layout is specified, default to vertical if not set
+  const isHorizontal = settings.defaultMessagesLayout === "horizontal";
+
   return (
-    <div className="allm-flex allm-flex-col allm-gap-y-2 allm-w-[75%]">
+    <div
+      className={`allm-flex ${isHorizontal ? "allm-flex-row" : "allm-flex-col"} allm-gap-2 ${isHorizontal ? "allm-w-full" : "allm-w-[75%]"}`}
+    >
       {settings.defaultMessages.map((content, i) => (
         <button
           key={i}

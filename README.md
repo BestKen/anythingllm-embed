@@ -71,6 +71,12 @@ REQUIRED data attributes:
 
 - `data-custom-button-image-height` — Height of the custom button image (include CSS units like 'px', '%', 'rem'). Default is '24px'.
 
+- `data-greeting-image-url` — URL to an image that will be displayed above the greeting message when the chat has no history.
+
+- `data-greeting-image-width` — Width of the greeting image (include CSS units like 'px', '%', 'rem'). If not specified, the image will use its natural width.
+
+- `data-greeting-image-height` — Height of the greeting image (include CSS units like 'px', '%', 'rem'). If not specified, the image will use its natural height.
+
 - `data-button-color` — The chat bubble background color shown when chat is closed. Value must be hex color code.
 
 - `data-button-container-styles` — JSON string of CSS styles to apply to the button container when chat is closed. Example: `'{"padding":"10px","borderRadius":"50%","boxShadow":"0 4px 8px rgba(0,0,0,0.2)"}'`
@@ -110,6 +116,10 @@ REQUIRED data attributes:
 - `data-username` - A specific readable name or identifier for the client for your reference. Will be shown in AnythingLLM chat logs. If empty it will not be reported.
 
 - `data-default-messages` - A string of comma-separated messages you want to display to the user when the chat widget has no history. Example: `"How are you?, What is so interesting about this project?, Tell me a joke."`
+
+- `data-default-messages` - A comma-separated string of predefined messages that will be displayed as clickable suggestion buttons when the chat has no history. Users can click these to quickly send common questions. Example: `"How can I help you?, What features do you offer?, Tell me more about pricing"`
+
+- `data-default-messages-layout` - Controls how the default messages are displayed. Options are `vertical` (default) or `horizontal`. In horizontal mode, messages will be arranged in a row instead of a column.
 
 - `data-reset-chat-text` - Customize the text displayed on the Reset Chat buttons (both in header menu and footer). Default is `Reset Chat`.
 

@@ -41,7 +41,10 @@ const markdown = markdownIt({
       "</pre></div>"
     );
   },
-});
+})
+  // Enable <ol> and <ul> items to not assume an HTML structure so we can keep numbering from responses.
+  .disable("list");
+
 
 // Configure renderer to add target="_blank" to all links
 const defaultRender = markdown.renderer.rules.link_open || function (tokens, idx, options, env, self) {

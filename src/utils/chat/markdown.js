@@ -6,6 +6,7 @@ import { v4 } from "uuid";
 const markdown = markdownIt({
   html: false,
   typographer: true,
+  breaks: true, // Enable line breaks
   highlight: function (code, lang) {
     const uuid = v4();
     if (lang && hljs.getLanguage(lang)) {
@@ -40,13 +41,23 @@ const markdown = markdownIt({
       "</pre></div>"
     );
   },
-})
-  // Enable <ol> and <ul> items to not assume an HTML structure so we can keep numbering from responses.
-  .disable("list");
+});
 
 // Configure renderer to add target="_blank" to all links
 const defaultRender = markdown.renderer.rules.link_open || function (tokens, idx, options, env, self) {
   return self.renderToken(tokens, idx, options);
+};
+
+// Custom renderer for images to center-align them
+const defaultImageRender = markdown.renderer.rules.image || function (tokens, idx, options, env, self) {
+  return self.renderToken(tokens, idx, options);
+};
+
+markdown.renderer.rules.image = function (tokens, idx, options, env, self) {
+  // Get the default image HTML
+  const imageHtml = defaultImageRender(tokens, idx, options, env, self);
+  // Wrap it in a div with center alignment
+  return `<div style="text-align: center;">${imageHtml}</div>`;
 };
 
 markdown.renderer.rules.link_open = function (tokens, idx, options, env, self) {

@@ -115,6 +115,8 @@ REQUIRED data attributes:
 
 - `data-username` - A specific readable name or identifier for the client for your reference. Will be shown in AnythingLLM chat logs. If empty it will not be reported.
 
+- `data-contact-info` - Additional contact information that will be displayed in the chat interface. This can be used to provide users with alternative ways to reach you.
+
 - `data-default-messages` - A string of comma-separated messages you want to display to the user when the chat widget has no history. Example: `"How are you?, What is so interesting about this project?, Tell me a joke."`
 
 - `data-default-messages` - A comma-separated string of predefined messages that will be displayed as clickable suggestion buttons when the chat has no history. Users can click these to quickly send common questions. Example: `"How can I help you?, What features do you offer?, Tell me more about pricing"`

@@ -3,13 +3,33 @@ import ChatService from "@/models/chatService";
 import { useScriptAttributes } from "@/hooks/useScriptAttributes";
 import {
   ArrowCounterClockwise,
+  CaretUp,
   Check,
   Copy,
   DotsThreeOutlineVertical,
   Envelope,
+  Info,
   X,
 } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
+import renderMarkdown from "@/utils/chat/markdown";
+import createDOMPurify from "dompurify";
+
+const DOMPurify = createDOMPurify(window);
+// Configure DOMPurify to allow target="_blank" and rel attributes on links
+DOMPurify.setConfig({
+  ADD_ATTR: ["target", "rel"],
+  ADD_TAGS: ["a"],
+  ALLOW_UNKNOWN_PROTOCOLS: true,
+});
+
+// Helper function to process escape sequences in strings
+const processEscapeSequences = (text) => {
+  if (!text) return "";
+
+  // Replace literal \n with actual newlines
+  return text.replace(/\\n/g, "\n").replace(/\\t/g, "\t").replace(/\\r/g, "\r");
+};
 
 export default function ChatWindowHeader({
   sessionId,
@@ -19,6 +39,7 @@ export default function ChatWindowHeader({
   setChatHistory,
 }) {
   const [showingOptions, setShowOptions] = useState(false);
+  const [showContactInfo, setShowContactInfo] = useState(false);
   const menuRef = useRef();
   const buttonRef = useRef();
   const headerRef = useRef();
@@ -272,6 +293,30 @@ export default function ChatWindowHeader({
     document.body.style.cursor = "move";
   };
 
+  const toggleContactInfo = () => {
+    if (showContactInfo) {
+      // If already showing, animate closing
+      const contactCard = document.querySelector(
+        '[data-contact-info-card="true"]'
+      );
+      if (contactCard) {
+        contactCard.style.height = "0px";
+        // Wait for animation to complete before hiding
+        setTimeout(() => {
+          setShowContactInfo(false);
+        }, 300); // Match animation duration
+      } else {
+        setShowContactInfo(false);
+      }
+    } else {
+      // If not showing, simply show it
+      setShowContactInfo(true);
+    }
+
+    // Close options menu if it's open
+    if (showingOptions) setShowOptions(false);
+  };
+
   return (
     <div
       ref={headerRef}
@@ -285,6 +330,20 @@ export default function ChatWindowHeader({
       id="anything-llm-header"
       onMouseDown={handleMouseDown}
     >
+      <div className="allm-absolute allm-left-0 allm-flex allm-gap-x-1 allm-items-center allm-px-[22px]">
+        {settings.loaded && settings.contactInfo && (
+          <button
+            type="button"
+            onClick={toggleContactInfo}
+            className={`allm-bg-transparent hover:allm-cursor-pointer allm-border-none hover:allm-bg-gray-100 allm-rounded-sm ${
+              showContactInfo ? "allm-text-blue-500" : "allm-text-slate-800/60"
+            }`}
+            aria-label="Contact Info"
+          >
+            <Info size={24} weight="fill" />
+          </button>
+        )}
+      </div>
       <div className="allm-flex allm-justify-center allm-items-center allm-w-full allm-h-[76px]">
         <img
           style={{ maxWidth: 48, maxHeight: 48 }}
@@ -320,6 +379,149 @@ export default function ChatWindowHeader({
         sessionId={sessionId}
         menuRef={menuRef}
       />
+      {showContactInfo && (
+        <ContactInfoCard
+          contactInfo={settings.contactInfo}
+          onClose={() => setShowContactInfo(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+function ContactInfoCard({ contactInfo, onClose }) {
+  const [isClosing, setIsClosing] = useState(false);
+  const cardRef = useRef(null);
+  const contentRef = useRef(null);
+  const [maxContentHeight, setMaxContentHeight] = useState(
+    "calc(100vh - 200px)"
+  ); // Default fallback
+  const FOOTER_HEIGHT = 40; // Height for the footer with close handle
+
+  const handleClose = () => {
+    setIsClosing(true);
+
+    // Animate to height 0
+    if (cardRef.current) {
+      cardRef.current.style.height = "0px";
+    }
+
+    // Wait for animation to complete before actually removing the component
+    setTimeout(() => {
+      onClose();
+    }, 300); // Match animation duration
+  };
+
+  // Prevent mousedown events from propagating to parent (header)
+  // but still allow text selection
+  const handleMouseDown = (e) => {
+    // Only stop propagation if not trying to select text
+    if (window.getSelection().toString() === "") {
+      e.stopPropagation();
+    }
+  };
+
+  // Calculate max height based on chat window height and set initial animation
+  useEffect(() => {
+    if (cardRef.current && contentRef.current) {
+      // Get the chat window container
+      const chatContainer = document.getElementById("anything-llm-chat");
+      if (!chatContainer) return;
+
+      // Get the header height
+      const header = document.getElementById("anything-llm-header");
+      const headerHeight = header ? header.offsetHeight : 76; // Default header height if not found
+
+      // Calculate available height (chat window height minus header, footer, and some padding)
+      const chatWindowHeight = chatContainer.offsetHeight;
+      const calculatedMaxHeight =
+        chatWindowHeight - headerHeight - FOOTER_HEIGHT - 20; // 20px for padding
+
+      setMaxContentHeight(`${calculatedMaxHeight}px`);
+
+      // Set initial height to 0
+      cardRef.current.style.height = "0px";
+
+      // Force a reflow to ensure the initial height is applied
+      void cardRef.current.offsetHeight;
+
+      // Animate to content height (limited by max height) plus footer height
+      requestAnimationFrame(() => {
+        cardRef.current.style.height = `${calculatedMaxHeight + FOOTER_HEIGHT}px`;
+      });
+    }
+
+    // Update max height on window resize
+    const handleResize = () => {
+      const chatContainer = document.getElementById("anything-llm-chat");
+      if (!chatContainer) return;
+
+      const header = document.getElementById("anything-llm-header");
+      const headerHeight = header ? header.offsetHeight : 76;
+
+      const chatWindowHeight = chatContainer.offsetHeight;
+      const calculatedMaxHeight =
+        chatWindowHeight - headerHeight - FOOTER_HEIGHT - 20;
+
+      setMaxContentHeight(`${calculatedMaxHeight}px`);
+
+      // Also update the card height if it's open
+      if (cardRef.current && cardRef.current.style.height !== "0px") {
+        cardRef.current.style.height = `${calculatedMaxHeight + FOOTER_HEIGHT}px`;
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return (
+    <div
+      ref={cardRef}
+      className="allm-absolute allm-z-20 allm-top-full allm-left-0 allm-right-0 allm-bg-white allm-shadow-lg allm-rounded-b-lg allm-overflow-hidden allm-transition-[height] allm-duration-300 allm-ease-in-out allm-flex allm-flex-col"
+      style={{ height: 0 }}
+      data-contact-info-card="true"
+      onMouseDown={handleMouseDown}
+    >
+      {/* Scrollable content area */}
+      <div
+        ref={contentRef}
+        className="allm-relative allm-p-4 allm-overflow-y-auto allm-flex-grow"
+        style={{ height: maxContentHeight }}
+      >
+        <div
+          className="allm-prose allm-max-w-none allm-pt-2 allm-pb-2 allm-px-2 allm-select-text allm-mx-auto"
+          style={{
+            userSelect: "text",
+            WebkitUserSelect: "text",
+            MozUserSelect: "text",
+            msUserSelect: "text",
+            cursor: "text",
+          }}
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+          dangerouslySetInnerHTML={{
+            __html: DOMPurify.sanitize(
+              renderMarkdown(processEscapeSequences(contactInfo || ""))
+            ),
+          }}
+        />
+      </div>
+
+      {/* Fixed footer with close handle */}
+      <div className="allm-flex allm-flex-col allm-items-center allm-w-full allm-py-2 allm-border-t allm-border-gray-100">
+        <button
+          type="button"
+          onClick={handleClose}
+          className="allm-flex allm-flex-col allm-items-center allm-bg-transparent allm-border-none allm-cursor-pointer allm-w-full"
+          aria-label="Close contact info"
+        >
+          <CaretUp
+            size={10}
+            weight="bold"
+            className="allm-text-gray-400 allm-mb-1"
+          />
+        </button>
+      </div>
     </div>
   );
 }
@@ -335,6 +537,7 @@ function OptionsMenu({ settings, showing, resetChat, sessionId, menuRef }) {
       className="allm-bg-white allm-absolute allm-z-10 allm-flex allm-flex-col allm-gap-y-1 allm-rounded-xl allm-shadow-lg allm-top-[64px] allm-right-[46px]"
     >
       <button
+        type="button"
         onClick={resetChat}
         className="hover:allm-cursor-pointer allm-bg-white allm-gap-x-[12px] hover:allm-bg-gray-100 allm-rounded-lg allm-border-none allm-flex allm-items-center allm-text-base allm-text-[#7A7D7E] allm-font-bold allm-px-4"
       >
@@ -369,6 +572,7 @@ function SessionID({ sessionId }) {
 
   return (
     <button
+      type="button"
       onClick={copySessionId}
       className="hover:allm-cursor-pointer allm-bg-white allm-gap-x-[12px] hover:allm-bg-gray-100 allm-rounded-lg allm-border-none allm-flex allm-items-center allm-text-base allm-text-[#7A7D7E] allm-font-bold allm-px-4"
     >

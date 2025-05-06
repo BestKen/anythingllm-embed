@@ -34,7 +34,7 @@
       color: #333;
     }
 
-    button {
+    .tools button {
       margin: 5px;
       padding: 8px 15px;
       background: #0066cc;
@@ -44,7 +44,7 @@
       cursor: pointer;
     }
 
-    button:hover {
+    .tools button:hover {
       background: #0055aa;
     }
   </style>
@@ -54,7 +54,7 @@
 <body>
   <h1>This is an example testing page for embedded AnythingLLM.</h1>
 
-  <div>
+  <div class="tools">
     <button id="clear-log">Clear Log</button>
     <button id="modify-message">Toggle Message Modification</button>
     <button id="modify-response">Toggle Response Modification</button>
@@ -180,7 +180,8 @@
     data-default-messages="How are you?, What is so interesting about this project?, Tell me a joke."
     data-default-messages-layout="horizontal"
     data-greeting-image-url="https://www.svgrepo.com/show/396960/magic-wand.svg" data-greeting-image-width="100px"
-    data-greeting-image-height="100px">
+    data-greeting-image-height="100px"
+    data-contact-info="# 📬 Contact Us\n\nWe'd love to hear from you! Reach out using the details below or visit our website for more information.\n\n---\n\n### 📧 Email\n[xxx@example.com](mailto:xxx@example.com)\n\n### 📞 Phone\n[+1 (123) 456-7890](tel:+11234567890)\n\n### 🌐 Website\n[Visit Example.com](https://example.com)\n\n---\n\n## Connect with Us\n![Test Image](https://www.innovue.ltd/wp-content/uploads/2020/12/img_LINE.png)\n\n---\n\n*Have a question or need assistance? Drop us a message anytime!*">
     </script>
 </body>
 

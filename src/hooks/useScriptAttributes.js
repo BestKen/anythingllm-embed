@@ -30,6 +30,7 @@ const DEFAULT_SETTINGS = {
   windowHeight: null, // height of chat window in number:css-prefix
   windowWidth: null, // width of chat window in number:css-prefix
   textSize: null, // text size in px (number only)
+  contactInfo: null, // markdown content for contact info card
 
   // behaviors
   openOnLoad: "off", // or "on"
